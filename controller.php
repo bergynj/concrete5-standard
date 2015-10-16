@@ -19,31 +19,36 @@ defined('C5_EXECUTE') or die(_("Access Denied."));
 
 class Controller extends Package  {
 
-	protected $pkgHandle = 'standard';
+    protected $pkgHandle = 'standard';
     
-	protected $appVersionRequired = '5.7.4';
-	protected $pkgVersion = '1.0';
-	protected $pkg;
+    protected $appVersionRequired = '5.7.4';
+    protected $pkgVersion = '1.0';
+    protected $pkg;
     
     protected $pkgAllowsFullContentSwap = true;
 
-	public function getPackageDescription() {
-		return t("Revert Site Content to Standard Base Install.");
-	}
+    public function getPackageDescription() {
+        return t("Revert Site Content to Standard Base Install.");
+    }
 
-	public function getPackageName() {
-		return t("Standard Content");
-	}
-	
-	public function install($data = array()) {
-
+    public function getPackageName() {
+        return t("Standard Content");
+    }
+    
+    public function install($data = array()) {
         $pkg = parent::install();
-        
-        // Set Theme
-        // Theme::setThemeHandle($themeHandle);
-        Theme::setThemeHandle('elemental');
 
-	}
+        // Set Theme
+        // check for active themes
+        $active_theme = PageTheme::getSiteTheme();
+        // strcmp($active_theme->getThemeHandle(), $themeHandle) == 0
+        if (is_object($active_theme) && ($active_theme->getThemeHandle() !== 'elemental')) {
+            // Theme::setThemeHandle($themeHandle);
+            // $pt = PageTheme::getByID($pThemeID);
+            $pt = PageTheme::getByHandle('elemental');
+            $pt->applyToSite();
+        }   
+    }
 
     public function swapContent($options) {
 
@@ -84,7 +89,7 @@ class Controller extends Package  {
             // Install the starting point.
             if (is_file($path . '/content.xml')) :
                 $ci = new ContentImporter();
-                $ci->importContentFile($path . '/content.xml');
+            $ci->importContentFile($path . '/content.xml');
             endif;
             
             // Restore Cache
